@@ -1,0 +1,177 @@
+@startuml Facebook Management System - Sequence
+
+actor User
+participant "UserInterface" as UI
+participant "FileManager" as FM
+participant "User Class" as UC
+participant "Post Class" as PC
+participant "Comment Class" as CC
+participant "DateTime" as DT
+participant "FacebookException" as EX
+
+' Login Sequence
+User -> UI: Start Application
+activate UI
+
+UI -> FM: loadData()
+activate FM
+alt Success
+    FM --> UI: Data Loaded
+else Error
+    FM -> EX: new FacebookException
+    activate EX
+    EX --> FM: error
+    deactivate EX
+    FM --> UI: error
+    UI -> UI: displayError(error)
+end
+deactivate FM
+
+UI -> UI: showLoginScreen()
+User -> UI: Enter Credentials
+
+UI -> UC: login(email, password)
+activate UC
+alt Valid Credentials
+    UC --> UI: success
+    UI -> UI: showMainMenu()
+else Invalid Credentials
+    UC -> EX: new FacebookException
+    activate EX
+    EX --> UC: error
+    deactivate EX
+    UC --> UI: error
+    UI -> UI: displayError(error)
+end
+deactivate UC
+
+' Post Creation Sequence
+User -> UI: Create Post
+activate UI
+
+UI -> DT: new DateTime()
+activate DT
+DT --> UI: timestamp
+deactivate DT
+
+UI -> UC: createPost(content, privacy)
+activate UC
+
+UC -> PC: new Post(content, privacy, timestamp)
+activate PC
+PC --> UC: post
+deactivate PC
+
+UC -> FM: saveData()
+activate FM
+alt Success
+    FM --> UC: success
+else Error
+    FM -> EX: new FacebookException
+    activate EX
+    EX --> FM: error
+    deactivate EX
+    FM --> UC: error
+end
+deactivate FM
+
+UC --> UI: success
+deactivate UC
+
+UI --> User: Post Created Successfully
+
+' Comment Sequence
+User -> UI: Add Comment
+activate UI
+
+UI -> DT: new DateTime()
+activate DT
+DT --> UI: timestamp
+deactivate DT
+
+UI -> UC: addComment(postId, content)
+activate UC
+
+UC -> PC: addComment(content, timestamp)
+activate PC
+
+PC -> CC: new Comment(content, timestamp)
+activate CC
+CC --> PC: comment
+deactivate CC
+
+PC --> UC: success
+deactivate PC
+
+UC -> FM: saveData()
+activate FM
+alt Success
+    FM --> UC: success
+else Error
+    FM -> EX: new FacebookException
+    activate EX
+    EX --> FM: error
+    deactivate EX
+    FM --> UC: error
+end
+deactivate FM
+
+UC --> UI: success
+deactivate UC
+
+UI --> User: Comment Added Successfully
+
+' Common Posts and Mutual Friends Sequence
+User -> UI: View Common Posts
+activate UI
+
+UI -> UC: getCommonPosts(otherUser)
+activate UC
+UC --> UI: commonPosts
+deactivate UC
+
+UI --> User: Display Common Posts
+
+User -> UI: View Mutual Friends
+activate UI
+
+UI -> UC: getMutualFriends(otherUser)
+activate UC
+UC --> UI: mutualFriends
+deactivate UC
+
+UI --> User: Display Mutual Friends
+
+' Friend Search Sequence
+User -> UI: Search Friends
+activate UI
+
+UI -> UC: searchFriends(query)
+activate UC
+UC --> UI: matchingUsers
+deactivate UC
+
+UI --> User: Display Matching Users
+
+User -> UI: Add as Friend
+activate UI
+
+UI -> UC: getFriendType(selectedUser)
+activate UC
+UC --> UI: friendType
+deactivate UC
+
+alt New Friend
+    UI -> UC: addFriend(selectedUser)
+else Restricted Friend
+    UI -> UC: addRestrictedFriend(selectedUser)
+end
+
+UC -> FM: saveData()
+activate FM
+FM --> UC: success
+deactivate FM
+
+UI --> User: Friend Added Successfully
+
+@enduml

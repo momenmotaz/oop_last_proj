@@ -1,0 +1,99 @@
+@startuml Facebook Management System - Use Cases
+
+left to right direction
+skinparam packageStyle rectangle
+
+actor "User" as user
+actor "Friend" as friend
+actor "Restricted Friend" as restricted
+actor "System" as system
+
+rectangle "Facebook Management System" {
+    ' User Authentication
+    usecase "Create Account" as UC1
+    usecase "Login" as UC2
+    usecase "Validate Credentials" as UC3
+    
+    ' Post Management
+    usecase "Write Post" as UC4
+    usecase "Set Post Privacy" as UC5
+    usecase "Search for Friends" as UC6
+    usecase "Add Friend" as UC7
+    usecase "Like Post" as UC8
+    usecase "Comment on Post" as UC9
+    usecase "Reply to Comment" as UC10
+    usecase "Tag People in Post" as UC11
+    usecase "Send Message" as UC12
+    usecase "View Posts" as UC13
+    usecase "View Common Posts" as UC14
+    usecase "View Mutual Friends" as UC15
+    
+    ' Data Management
+    usecase "Load User Data" as UC16
+    usecase "Save User Data" as UC17
+    usecase "Handle Errors" as UC18
+    usecase "Manage DateTime" as UC19
+    
+    ' Extensions
+    usecase "View Public Posts" as UC20
+    usecase "View All Posts" as UC21
+}
+
+' User relationships
+user --> UC1
+user --> UC2
+user --> UC4
+user --> UC6
+user --> UC7
+user --> UC8
+user --> UC9
+user --> UC10
+user --> UC11
+user --> UC12
+user --> UC13
+user --> UC14
+user --> UC15
+
+' Friend relationships
+friend --> UC13
+friend --> UC8
+friend --> UC9
+friend --> UC10
+friend --> UC12
+
+' Restricted friend relationships
+restricted --> UC20
+
+' System relationships
+system --> UC3
+system --> UC16
+system --> UC17
+system --> UC18
+system --> UC19
+
+' Extensions
+UC13 <|-- UC20
+UC13 <|-- UC21
+
+' Include relationships
+UC1 ..> UC19 : <<include>>
+UC4 ..> UC19 : <<include>>
+UC12 ..> UC19 : <<include>>
+UC1 ..> UC17 : <<include>>
+UC4 ..> UC17 : <<include>>
+UC12 ..> UC17 : <<include>>
+UC2 ..> UC3 : <<include>>
+UC2 ..> UC16 : <<include>>
+
+' Error handling relationships
+UC16 ..> UC18 : <<extend>>
+UC17 ..> UC18 : <<extend>>
+UC3 ..> UC18 : <<extend>>
+
+note "Only public posts are visible" as N1
+N1 .. restricted
+
+note "Manages all system operations" as N2
+N2 .. system
+
+@enduml

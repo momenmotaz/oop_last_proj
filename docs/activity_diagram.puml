@@ -1,0 +1,118 @@
+@startuml Facebook Management System - Activity Flow
+
+|User|
+start
+
+|System|
+:Initialize Application;
+:Load Data from Files;
+
+if (Data Loading Successful?) then (yes)
+else (no)
+    :Display Error Message;
+    :Log Error;
+endif
+
+|User Interface|
+:Show Welcome Screen;
+
+if (Has Account?) then (yes)
+    :Show Login Screen;
+    :Enter Credentials;
+    
+    |System|
+    if (Valid Credentials?) then (yes)
+        :Create DateTime Objects;
+        :Load User Data;
+    else (no)
+        :Log Error;
+        :Show Error Message;
+        stop
+    endif
+else (no)
+    :Show Registration Form;
+    :Enter User Details;
+    
+    |System|
+    :Validate Details;
+    :Create DateTime Objects;
+    if (Valid Details?) then (yes)
+        :Create Account;
+        :Load User Data;
+    else (no)
+        :Log Error;
+        :Show Error Message;
+        stop
+    endif
+endif
+
+|User Interface|
+:Show Main Menu;
+
+fork
+    :Write Post;
+    |System|
+    :Create Timestamp;
+    :Set Privacy;
+    :Optional: Tag Friends;
+    :Save to File;
+fork again
+    :View Posts;
+    |System|
+    if (Friend Type?) then (Regular)
+        :View All Posts;
+    else (Restricted)
+        :View Public Posts Only;
+    endif
+fork again
+    :Search Friends;
+    |System|
+    :Query User Database;
+    :Display Results;
+    :Send Friend Request;
+    if (Accept Request?) then (yes)
+        :Add as Friend;
+        if (Set as Restricted?) then (yes)
+            :Mark as Restricted;
+        else (no)
+            :Regular Friend;
+        endif
+    else (no)
+        :Request Declined;
+    endif
+fork again
+    :View Common Content;
+    |System|
+    if (View Type?) then (Posts)
+        :Calculate Common Posts;
+        :Apply operator+;
+    else (Friends)
+        :Calculate Mutual Friends;
+        :Apply operator&;
+    endif
+    :Display Results;
+fork again
+    :Start Conversation;
+    |System|
+    :Create Timestamp;
+    :Send Messages;
+    :Save to File;
+fork again
+    :View Profile;
+    |System|
+    :Load Profile Data;
+end fork
+
+|System|
+:Save All Changes to Files;
+
+if (Save Successful?) then (yes)
+    :Update UI;
+else (no)
+    :Log Error;
+    :Show Error Message;
+endif
+
+stop
+
+@enduml

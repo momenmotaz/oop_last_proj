@@ -1,0 +1,165 @@
+@startuml Facebook Management System
+
+' DateTime Class
+class DateTime {
+  -int day
+  -int month
+  -int year
+  -int hour
+  -int minute
+  +DateTime(day: int, month: int, year: int)
+  +DateTime(day: int, month: int, year: int, hour: int, minute: int)
+  +toString(): string
+  +isValid(): bool
+}
+
+' Custom Exception Class
+class FacebookException {
+  -string message
+  -string type
+  +FacebookException(message: string, type: string)
+  +what(): string
+  +getType(): string
+}
+
+' User Interface Class
+class UserInterface {
+  -static UserInterface* instance
+  -User* currentUser
+  -FileManager* fileManager
+  -UserInterface()
+  +static UserInterface* getInstance()
+  +showLoginScreen()
+  +showRegistrationScreen()
+  +showMainMenu()
+  +handleUserInput(): void
+  +displayError(error: FacebookException)
+}
+
+' User Class
+class User {
+  -string email
+  -string name
+  -string password
+  -string gender
+  -DateTime birthdate
+  -vector<User*> friends
+  -vector<User*> restrictedFriends
+  -vector<Post*> posts
+  -vector<Conversation*> conversations
+  +User(email: string, name: string, password: string, gender: string, birthdate: DateTime)
+  +createPost(content: string, privacy: Privacy): Post
+  +addFriend(user: User*)
+  +addRestrictedFriend(user: User*)
+  +login(email: string, password: string): bool
+  +operator+(User& other): vector<Post*>  // getCommonPosts()
+  +operator&(User& other): vector<User*>  // getMutualFriends()
+  +getCommonPosts(User& other): vector<Post*>  // implementation of operator+
+  +getMutualFriends(User& other): vector<User*>  // implementation of operator&
+  +searchFriends(string query): vector<User*>
+  +getFriendType(User* user): string  // returns "regular", "restricted", or "none"
+}
+
+' Post Class
+class Post {
+  -int id
+  -string content
+  -User* author
+  -Privacy privacy
+  -vector<User*> taggedUsers
+  -vector<Comment*> comments
+  -vector<User*> likes
+  -DateTime createdAt
+  +Post(id: int, content: string, author: User*, privacy: Privacy)
+  +addComment(comment: Comment*)
+  +addTag(user: User*)
+  +addLike(user: User*)
+  +isVisibleTo(user: User*): bool
+}
+
+' Comment Class
+class Comment {
+  -int id
+  -string content
+  -User* author
+  -vector<Reply*> replies
+  -vector<User*> likes
+  -DateTime createdAt
+  +Comment(id: int, content: string, author: User*)
+  +addReply(reply: Reply*)
+  +addLike(user: User*)
+}
+
+' Reply Class
+class Reply {
+  -int id
+  -string content
+  -User* author
+  -vector<User*> likes
+  -DateTime createdAt
+  +Reply(id: int, content: string, author: User*)
+  +addLike(user: User*)
+}
+
+' Conversation Class
+class Conversation {
+  -int id
+  -vector<User*> participants
+  -vector<Message*> messages
+  +Conversation(id: int)
+  +addParticipant(user: User*)
+  +addMessage(message: Message*)
+}
+
+' Message Class
+class Message {
+  -int id
+  -string content
+  -User* sender
+  -DateTime timestamp
+  +Message(id: int, content: string, sender: User*)
+}
+
+' FileManager Class (Singleton)
+class FileManager {
+  -FileManager()
+  -static FileManager* instance
+  -string usersFile
+  -string postsFile
+  -string conversationsFile
+  +static FileManager* getInstance()
+  +saveData()
+  +loadData()
+  -handleFileError(error: FacebookException)
+}
+
+' Privacy Enum
+enum Privacy {
+  PUBLIC
+  FRIENDS_ONLY
+}
+
+' Relationships
+User "1" *-- "*" Post : creates >
+User "1" *-- "*" Comment : writes >
+User "1" *-- "*" Reply : writes >
+User "*" -- "*" User : friends
+Post "1" *-- "*" Comment : has >
+Comment "1" *-- "*" Reply : has >
+User "*" -- "*" Conversation : participates
+Conversation "1" *-- "*" Message : contains >
+Post "*" -- "*" User : tagged
+Post "*" -- "*" User : liked by
+Comment "*" -- "*" User : liked by
+Reply "*" -- "*" User : liked by
+UserInterface "1" -- "1" FileManager : uses >
+UserInterface "1" -- "1" User : manages >
+User -- DateTime : has birthdate
+Post -- DateTime : has createdAt
+Comment -- DateTime : has createdAt
+Reply -- DateTime : has createdAt
+Message -- DateTime : has timestamp
+FileManager ..> FacebookException : throws
+UserInterface ..> FacebookException : handles
+
+@enduml
