@@ -46,6 +46,10 @@ public:
     bool operator<(const DateTime& other) const;
     bool operator>(const DateTime& other) const;
     bool operator==(const DateTime& other) const;
+    
+    // Serialization
+    static DateTime deserialize(const std::string& data);
+    std::string serialize() const;
 };
 
 #endif // DATETIME_H

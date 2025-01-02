@@ -1,17 +1,16 @@
 #ifndef POST_H
 #define POST_H
 
-#include "datetime.h"
-#include "comment.h"
-#include "facebook_exception.h"
 #include <string>
 #include <vector>
-#include <memory>
-#include <unordered_set>
+#include <unordered_map>
+#include "datetime.h"
+
+class User;
+class Comment;
 
 class Post {
 public:
-    // Privacy enum
     enum class Privacy {
         Public,
         FriendsOnly
@@ -19,59 +18,44 @@ public:
 
 private:
     int id;
-    int authorId;
     std::string content;
-    DateTime timestamp;
     Privacy privacy;
-    std::vector<std::shared_ptr<Comment>> comments;
-    std::unordered_set<int> taggedUsers;
-    std::unordered_set<int> likerIds;
-    static int nextId;
+    User* author;
+    DateTime createdAt;
+    std::vector<User*> taggedUsers;
+    std::vector<Comment*> comments;
+    std::unordered_map<User*, int> reactions;  // User -> reaction type
 
 public:
-    // Constructors
-    Post(int authorId, const std::string& content, Privacy privacy = Privacy::Public);
+    Post(int id, const std::string& content, Privacy privacy, User* author);
     
     // Getters
     int getId() const { return id; }
-    int getAuthorId() const { return authorId; }
-    const std::string& getContent() const { return content; }
-    const DateTime& getTimestamp() const { return timestamp; }
+    std::string getContent() const { return content; }
     Privacy getPrivacy() const { return privacy; }
+    User* getAuthor() const { return author; }
+    DateTime getCreatedAt() const { return createdAt; }
+    
+    // Tag management
+    void tagUser(User* user);
+    void untagUser(User* user);
+    bool isUserTagged(const User* user) const;
+    std::vector<User*> getTaggedUsers() const { return taggedUsers; }
     
     // Comment management
-    void addComment(const std::shared_ptr<Comment>& comment);
-    void removeComment(int commentId);
-    std::shared_ptr<Comment> getComment(int commentId) const;
-    const std::vector<std::shared_ptr<Comment>>& getComments() const { return comments; }
+    void addComment(Comment* comment);
+    void removeComment(Comment* comment);
+    std::vector<Comment*> getComments() const { return comments; }
     
-    // Tagged users management
-    void tagUser(int userId);
-    void removeTag(int userId);
-    bool isUserTagged(int userId) const;
-    const std::unordered_set<int>& getTaggedUsers() const { return taggedUsers; }
+    // Reaction management
+    void addReaction(User* user, int reactionType);
+    void removeReaction(User* user);
+    int getReactionType(const User* user) const;
+    std::unordered_map<User*, int> getReactions() const { return reactions; }
     
-    // Like management
-    void addLike(int userId);
-    void removeLike(int userId);
-    bool isLikedBy(int userId) const;
-    int getLikesCount() const { return likerIds.size(); }
-    const std::unordered_set<int>& getLikerIds() const { return likerIds; }
-    
-    // Privacy management
-    bool isVisibleTo(int userId) const;
-    void setPrivacy(Privacy newPrivacy) { privacy = newPrivacy; }
-    
-    // Validation
-    bool isValid() const;
-    
-    // String representation
-    std::string toString() const;
-    
-    // Comparison operators
-    bool operator<(const Post& other) const { return id < other.id; }
-    bool operator>(const Post& other) const { return id > other.id; }
-    bool operator==(const Post& other) const { return id == other.id; }
+    // Serialization
+    static Post deserialize(const std::string& json);
+    std::string serialize() const;
 };
 
 #endif // POST_H
